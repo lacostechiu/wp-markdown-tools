@@ -1,0 +1,7 @@
+requests
+pyyaml
+python-slugify
+markdown
+deep-translator
+beautifulsoup4
+markdownify
