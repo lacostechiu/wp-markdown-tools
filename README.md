@@ -23,11 +23,31 @@
    為確保系統安全，請勿直接輸入您的帳號密碼，請到 WordPress 後台的「使用者 > 個人資料」最下方，新增「應用程式密碼」(Application Passwords) 來取得 API 密碼。
 
 3. **發佈文章**
+   使用 `publish_to_wp.py` 時，md 檔開頭需要加上 YAML 格式的 Front matter，這樣可以自訂文章的資訊。例如：
+   ```yaml
+   ---
+   title: "AI 自動化心得：從輸入到輸出的無縫接軌"
+   slug: ai-automation-workflow
+   categories: [AI學習]
+   tags: [Obsidian, Python, WordPress]
+   status: draft
+   ---
+   ```
+   * **發佈與更新機制：**
+     1. 文章首次發佈上傳後，會自動抓回並補上 WordPress 的文章 ID。
+     2. 第二次發佈時，如果 md 檔內已經有 ID，系統就會判斷為「更新文章」。
+     3. 舊文章下載後若進行修改，再次發佈時也會變成文章更新。
+
+   **執行指令：**
    ```bash
    python publish_to_wp.py "您要發佈的檔案路徑.md"
    ```
 
 4. **下載文章**
+   使用 `wp_downloader.py` 下載舊文章時，程式會保留原有的圖片連結，不會實際下載圖片到本地端。
+   (但如果是透過發佈腳本發佈新文章，遇到本地圖片時會實際上傳圖片到 WordPress)
+
+   **執行指令：**
    ```bash
    python wp_downloader.py
    python wp_downloader.py <文章ID>  # 如果要下載單一文章
