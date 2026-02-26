@@ -81,7 +81,7 @@ class WordPressClient:
         if response.status_code == 200:
             return response.json()
         else:
-            print(f"❌ 更新失敗！代碼: {response.status_code}")
+            print(f"[Error] 更新失敗！代碼: {response.status_code}")
             print(f"錯誤訊息: {response.text}")
             return None
             
@@ -165,7 +165,7 @@ def convert_to_gutenberg(html_text):
 
 def process_markdown(file_path, client):
     # 打印當前環境
-    print(f"📍 當前工作環境: {CURRENT_ENV}")
+    print(f"[Info] 當前工作環境: {CURRENT_ENV}")
     
     with open(file_path, 'r', encoding='utf-8') as f:
         raw_content = f.read()
@@ -220,7 +220,7 @@ def process_markdown(file_path, client):
     tag_ids = get_ids("tags", "tags")
 
     if wp_id:
-        print(f"🚀 Detecting wp_id: {wp_id}. Updating existing post...")
+        print(f"[Action] Detecting wp_id: {wp_id}. Updating existing post...")
         result = client.update_post(
             post_id=wp_id,
             title=title,
@@ -233,7 +233,7 @@ def process_markdown(file_path, client):
             status=front_matter.get("status", "publish")
         )
     else:
-        print("🚀 No wp_id found. Creating new post...")
+        print("[Action] No wp_id found. Creating new post...")
         result = client.create_post(
             title=title,
             content=gutenberg_content,
@@ -247,9 +247,9 @@ def process_markdown(file_path, client):
 
     if result:
         action = "updated" if wp_id else "published"
-        # ✨ 關鍵修改：從回傳的結果中抓取 ID
+        # [Note] 關鍵修改：從回傳的結果中抓取 ID
         final_id = result.get('id')
-        print(f"✅ Success: this file has been {action}! (Post ID: {final_id})")
+        print(f"[Success] Success: this file has been {action}! (Post ID: {final_id})")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2: sys.exit(1)

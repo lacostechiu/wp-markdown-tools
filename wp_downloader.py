@@ -31,7 +31,7 @@ if not SAVE_PATH:
 if not os.path.exists(SAVE_PATH):
     os.makedirs(SAVE_PATH)
 
-print(f"📍 當前存檔路徑設定為: {SAVE_PATH}")
+print(f"[Info] 當前存檔路徑設定為: {SAVE_PATH}")
 
 def fetch_and_save(post):
     """處理單一文章的轉換與儲存"""
@@ -60,7 +60,7 @@ status: publish
     with open(full_path, "w", encoding="utf-8") as f:
         f.write(yaml_header + content_md)
     
-    print(f"✅ 已成功下載/更新: {title} (ID: {wp_id})")
+    print(f"[Success] 已成功下載/更新: {title} (ID: {wp_id})")
 
 def start_download(post_id=None):
     """
@@ -69,24 +69,24 @@ def start_download(post_id=None):
     if post_id:
         # 狙擊模式：下載單一文章
         endpoint = f"{WP_URL}/wp-json/wp/v2/posts/{post_id}"
-        print(f"🚀 正在精準抓取文章 ID: {post_id}...")
+        print(f"[Action] 正在精準抓取文章 ID: {post_id}...")
         response = requests.get(endpoint)
         if response.status_code == 200:
             fetch_and_save(response.json())
         else:
-            print(f"❌ 找不到文章 ID: {post_id} (代碼: {response.status_code})")
+            print(f"[Error] 找不到文章 ID: {post_id} (代碼: {response.status_code})")
     else:
         # 大網模式：批量下載最近文章
         endpoint = f"{WP_URL}/wp-json/wp/v2/posts"
         params = {'per_page': POST_COUNT, 'status': 'publish'}
-        print(f"📦 正在批量抓取最近的 {POST_COUNT} 篇文章...")
+        print(f"[Action] 正在批量抓取最近的 {POST_COUNT} 篇文章...")
         response = requests.get(endpoint, params=params)
         if response.status_code == 200:
             posts = response.json()
             for post in posts:
                 fetch_and_save(post)
         else:
-            print(f"❌ 批量抓取失敗 (代碼: {response.status_code})")
+            print(f"[Error] 批量抓取失敗 (代碼: {response.status_code})")
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
