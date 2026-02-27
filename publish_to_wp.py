@@ -130,38 +130,38 @@ def convert_to_gutenberg(html_text):
     for element in soup.contents:
         if isinstance(element, str):
             text = element.strip()
-            if text: output.append(f'<p>{text}</p>')
+            if text: output.append(f'<!-- wp:paragraph -->\n<p>{text}</p>\n<!-- /wp:paragraph -->')
             continue
         tag = element.name
         inner = element.decode_contents()
         if tag == 'p':
             img = element.find('img')
-            if img: output.append(f'<figure class="wp-block-image size-full">{str(img)}</figure>')
-            else: output.append(f'<p>{inner}</p>')
+            if img: output.append(f'<!-- wp:image {{"sizeSlug":"full"}} -->\n<figure class="wp-block-image size-full">{str(img)}</figure>\n<!-- /wp:image -->')
+            else: output.append(f'<!-- wp:paragraph -->\n<p>{inner}</p>\n<!-- /wp:paragraph -->')
         elif tag in ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']:
-            level = int(tag[1]); output.append(f'<{tag}>{inner}</{tag}>')
+            level = int(tag[1]); output.append(f'<!-- wp:heading {{"level":{level}}} -->\n<{tag} class="wp-block-heading">{inner}</{tag}>\n<!-- /wp:heading -->')
         elif tag in ['ul', 'ol']:
-            ordered = tag == 'ol'; output.append(f'<{tag}>{inner}</{tag}>')
+            ordered = "true" if tag == 'ol' else "false"; output.append(f'<!-- wp:list {{"ordered":{ordered}}} -->\n<{tag} class="wp-block-list">{inner}</{tag}>\n<!-- /wp:list -->')
         elif tag == 'blockquote':
-            output.append(f'<blockquote>{inner}</blockquote>')
+            output.append(f'<!-- wp:quote -->\n<blockquote class="wp-block-quote">{inner}</blockquote>\n<!-- /wp:quote -->')
         elif tag == 'table':
-            output.append(f'<figure class="wp-block-table"><table>{inner}</table></figure>')
+            output.append(f'<!-- wp:table -->\n<figure class="wp-block-table"><table>{inner}</table></figure>\n<!-- /wp:table -->')
         elif tag == 'pre':
             code = element.find('code'); code_text = code.get_text() if code else element.get_text()
-            output.append(f'<pre class="wp-block-code"><code>{code_text}</code></pre>')
+            output.append(f'<!-- wp:code -->\n<pre class="wp-block-code"><code>{code_text}</code></pre>\n<!-- /wp:code -->')
         elif tag == 'iframe':
             src = element.get('src', '')
-            if is_video_url(src): output.append(f'<figure class="wp-block-embed"><div class="wp-block-embed__wrapper">{src}</div></figure>')
-            else: output.append(str(element))
+            if is_video_url(src): output.append(f'<!-- wp:embed {{"url":"{src}"}} -->\n<figure class="wp-block-embed"><div class="wp-block-embed__wrapper">\n{src}\n</div></figure>\n<!-- /wp:embed -->')
+            else: output.append(f'<!-- wp:html -->\n{str(element)}\n<!-- /wp:html -->')
         elif tag == 'video':
-            src = element.get('src', ''); output.append(f'<figure class="wp-block-video"><video src="{src}" controls></video></figure>')
+            src = element.get('src', ''); output.append(f'<!-- wp:video -->\n<figure class="wp-block-video"><video src="{src}" controls></video></figure>\n<!-- /wp:video -->')
         elif tag == 'a':
             href = element.get('href', '')
-            if is_video_url(href): output.append(f'<figure class="wp-block-embed"><div class="wp-block-embed__wrapper">{href}</div></figure>')
-            else: output.append(f'<p>{str(element)}</p>')
+            if is_video_url(href): output.append(f'<!-- wp:embed {{"url":"{href}"}} -->\n<figure class="wp-block-embed"><div class="wp-block-embed__wrapper">\n{href}\n</div></figure>\n<!-- /wp:embed -->')
+            else: output.append(f'<!-- wp:paragraph -->\n<p>{str(element)}</p>\n<!-- /wp:paragraph -->')
         else:
-            output.append(str(element))
-    return "".join(output)
+            output.append(f'<!-- wp:html -->\n{str(element)}\n<!-- /wp:html -->')
+    return "\n\n".join(output)
 
 def process_markdown(file_path, client):
     # 打印當前環境
