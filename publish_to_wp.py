@@ -10,15 +10,15 @@ from deep_translator import GoogleTranslator
 from bs4 import BeautifulSoup
 
 # === 配置區 ===
-WP_URL = "https://yourdomain.com/" # 填寫您的 WordPress 網址，例如 https://example.com/
-WP_USER = "your_username"          # 填寫您的 WordPress 使用者名稱
-WP_APP_PASSWORD = "your_application_password" # 填寫在 WordPress 後台產生的「應用程式密碼」
+WP_URL = "https://your-wordpress-site.com/"
+WP_USER = "your_username"
+WP_APP_PASSWORD = "your_application_password"
 API_ENDPOINT = urljoin(WP_URL, "wp-json/wp/v2/")
 
 # --- 環境偵測邏輯 (保持與下載腳本一致) ---
 POTENTIAL_PATHS = [
-    r"C:\Your\Path\To\Obsidian\Vault",
-    r"D:\Your\Path\To\Obsidian\Vault"
+    r"C:\Users\YourUser\Documents\Valut-Wordpress",
+    r"D:\GoogleDrive\Execution\Valut-Wordpress"
 ]
 
 CURRENT_ENV = "Unknown"
@@ -177,7 +177,8 @@ def process_markdown(file_path, client):
     filename_base = os.path.splitext(os.path.basename(file_path))[0]
     seo_desc = front_matter.get("description") or re.sub(r'[#*`\[\]!]', '', md_body)[:150].strip()
 
-    first_image_id = None
+    featured_media = front_matter.get("featured_media")
+    first_image_id = int(featured_media) if featured_media and str(featured_media).isdigit() else None
 
     def replace_image(match):
         nonlocal first_image_id

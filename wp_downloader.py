@@ -4,20 +4,20 @@ import sys
 from markdownify import markdownify as md
 
 # --- 設定區 ---
-WP_URL = "https://yourdomain.com" # 填寫您的 WordPress 網址，例如 https://example.com/
-WP_USER = "your_username"         # 填寫您的 WordPress 使用者名稱
-WP_APP_PASSWORD = "your_application_password" # 填寫在 WordPress 後台產生的「應用程式密碼」
-POST_COUNT = 1
+WP_URL = "https://your-wordpress-site.com" 
+WP_USER = "your_username"
+WP_APP_PASSWORD = "your_application_password"
+POST_COUNT = 10
 
 # --- 自動路徑偵測邏輯 ---
 POTENTIAL_PATHS = [
-    r"C:\Your\Path\To\Obsidian\Vault\OldPosts",
-    r"D:\Your\Path\To\Obsidian\Vault\OldPosts"
+    r"C:\Users\YourUser\Documents\Valut-Wordpress\OldPosts", # 筆電路徑範例
+    r"D:\GoogleDrive\Execution\Valut-Wordpress\OldPosts"      # 桌機路徑範例
 ]
 
 SAVE_PATH = None
 for path in POTENTIAL_PATHS:
-    # 檢查該路徑的父目錄 (Valut-Wordpress) 是否存在，代表該硬碟/空間已掛載
+    # 檢查該路徑的父目錄是否存
     parent_dir = os.path.dirname(path)
     if os.path.exists(parent_dir):
         SAVE_PATH = path
@@ -31,7 +31,7 @@ if not SAVE_PATH:
 if not os.path.exists(SAVE_PATH):
     os.makedirs(SAVE_PATH)
 
-print(f"[Info] 當前存檔路徑設定為: {SAVE_PATH}")
+print(f"📍 當前存檔路徑設定為: {SAVE_PATH}")
 
 def fetch_and_save(post):
     """處理單一文章的轉換與儲存"""
@@ -40,6 +40,12 @@ def fetch_and_save(post):
     content_html = post['content']['rendered']
     date = post['date']
     slug = post['slug']
+    featured_media = post.get('featured_media', 0)
+    
+    # 提取 SEOPress Meta Description
+    meta = post.get('meta', {})
+    description = meta.get('_seopress_titles_desc', '') if isinstance(meta, dict) else ''
+    description_escaped = description.replace('"', '\\"').replace('\n', ' ')
 
     # 轉換 HTML 為 Markdown
     content_md = md(content_html, heading_style="ATX")
@@ -51,6 +57,8 @@ title: "{title}"
 date: {date}
 slug: {slug}
 status: publish
+featured_media: {featured_media}
+description: "{description_escaped}"
 ---
 
 """
@@ -60,7 +68,7 @@ status: publish
     with open(full_path, "w", encoding="utf-8") as f:
         f.write(yaml_header + content_md)
     
-    print(f"[Success] 已成功下載/更新: {title} (ID: {wp_id})")
+    print(f"✅ 已成功下載/更新: {title} (ID: {wp_id})")
 
 def start_download(post_id=None):
     """
@@ -69,24 +77,24 @@ def start_download(post_id=None):
     if post_id:
         # 狙擊模式：下載單一文章
         endpoint = f"{WP_URL}/wp-json/wp/v2/posts/{post_id}"
-        print(f"[Action] 正在精準抓取文章 ID: {post_id}...")
-        response = requests.get(endpoint)
+        print(f"🚀 正在精準抓取文章 ID: {post_id}...")
+        response = requests.get(endpoint, auth=(WP_USER, WP_APP_PASSWORD))
         if response.status_code == 200:
             fetch_and_save(response.json())
         else:
-            print(f"[Error] 找不到文章 ID: {post_id} (代碼: {response.status_code})")
+            print(f"❌ 找不到文章 ID: {post_id} (代碼: {response.status_code})")
     else:
         # 大網模式：批量下載最近文章
         endpoint = f"{WP_URL}/wp-json/wp/v2/posts"
         params = {'per_page': POST_COUNT, 'status': 'publish'}
-        print(f"[Action] 正在批量抓取最近的 {POST_COUNT} 篇文章...")
-        response = requests.get(endpoint, params=params)
+        print(f"📦 正在批量抓取最近的 {POST_COUNT} 篇文章...")
+        response = requests.get(endpoint, params=params, auth=(WP_USER, WP_APP_PASSWORD))
         if response.status_code == 200:
             posts = response.json()
             for post in posts:
                 fetch_and_save(post)
         else:
-            print(f"[Error] 批量抓取失敗 (代碼: {response.status_code})")
+            print(f"❌ 批量抓取失敗 (代碼: {response.status_code})")
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
